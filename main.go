@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -230,8 +231,9 @@ func (RestaurantCreate) TableName() string {
 }
 
 type RestaurantUpdate struct {
-	Name    *string `json:"name" gorm:"column:name;"`
-	Address *string `json:"address" gorm:"column:address;"`
+	Name       *string    `json:"name" gorm:"column:name;"`
+	Address    *string    `json:"address" gorm:"column:address;"`
+	Updated_at *time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 func (RestaurantUpdate) TableName() string {
