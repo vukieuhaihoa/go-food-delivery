@@ -2,6 +2,7 @@ package restaurantstorage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/vukieuhaihoa/go-food-delivery/common"
 	restaurantmodel "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/model"
@@ -23,14 +24,27 @@ func (store *sqlStorage) ListRestaurant(
 		db = db.Where("owner_id = ?", v)
 	}
 
+	if v := paging.FakeCursor; v != "" {
+		fmt.Println(v)
+		if uid, err := common.DecomposeUIDFromBase58(v); err == nil {
+			db = db.Where("id < ?", uid.GetLocalID())
+		}
+	} else {
+		db = db.Offset(offset)
+	}
+
 	if err := db.Table(restaurantmodel.Restaurant{}.TableName()).
 		Count(&paging.Total).
 		Limit(paging.Limit).
-		Offset(offset).
 		Order("id desc").
 		Find(&result).
 		Error; err != nil {
-		return nil, err
+		return nil, common.ErrDb(err)
+	}
+
+	if len(result) > 0 {
+		result[len(result)-1].Mask(true)
+		paging.NextCursor = result[len(result)-1].FakeId.String()
 	}
 
 	return result, nil

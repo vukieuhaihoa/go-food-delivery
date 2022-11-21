@@ -4,36 +4,34 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/vukieuhaihoa/go-food-delivery/common"
+	"github.com/vukieuhaihoa/go-food-delivery/component"
 	restaurantbusiness "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/business"
 	restaurantmodel "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/model"
 	restaurantstorage "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/storage"
-	"gorm.io/gorm"
 )
 
-func CreateRestaurantHandler(db *gorm.DB) gin.HandlerFunc {
+func CreateRestaurantHandler(appCtx component.AppContext) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
 		var data restaurantmodel.RestaurantCreate
 
 		if err := ctx.ShouldBind(&data); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, common.ErrInvalidRequest(err))
 			return
 		}
 
-		storage := restaurantstorage.NewSQLStorage(db)
+		storage := restaurantstorage.NewSQLStorage(appCtx.GetMainDbConnection())
 
-		business := restaurantbusiness.NewRestaurantBusiness(storage)
+		business := restaurantbusiness.NewCreateRestaurantBusiness(storage)
 
 		if err := business.CreateRestaurant(ctx.Request.Context(), &data); err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			ctx.JSON(http.StatusBadRequest, err)
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{
-			"data": data.Id,
-		})
+		data.Mask(common.DbTypeRestaurant)
+
+		ctx.JSON(http.StatusOK, common.SimpleSuccessResponse(data.FakeId.String()))
 	}
 }

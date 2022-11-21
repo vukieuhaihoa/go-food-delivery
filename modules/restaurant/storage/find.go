@@ -3,7 +3,9 @@ package restaurantstorage
 import (
 	"context"
 
+	"github.com/vukieuhaihoa/go-food-delivery/common"
 	restaurantmodel "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/model"
+	"gorm.io/gorm"
 )
 
 func (store *sqlStorage) FindRestaurant(
@@ -14,7 +16,11 @@ func (store *sqlStorage) FindRestaurant(
 	var data restaurantmodel.Restaurant
 
 	if err := store.db.Where(cond).First(&data).Error; err != nil {
-		return nil, err
+
+		if err == gorm.ErrRecordNotFound {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, common.ErrDb(err)
 	}
 
 	return &data, nil

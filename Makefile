@@ -20,3 +20,5 @@ migrate_down:
 # App config
 start:
 	go run main.go
+dev:
+	nodemon --exec go run main.go --signal SIGTERM

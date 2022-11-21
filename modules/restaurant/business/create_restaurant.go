@@ -3,6 +3,7 @@ package restaurantbusiness
 import (
 	"context"
 
+	"github.com/vukieuhaihoa/go-food-delivery/common"
 	restaurantmodel "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/model"
 )
 
@@ -14,7 +15,7 @@ type createRestaurantBusiness struct {
 	storage CreateRestaurantStorage
 }
 
-func NewRestaurantBusiness(storage CreateRestaurantStorage) *createRestaurantBusiness {
+func NewCreateRestaurantBusiness(storage CreateRestaurantStorage) *createRestaurantBusiness {
 	return &createRestaurantBusiness{storage: storage}
 }
 
@@ -24,7 +25,7 @@ func (biz *createRestaurantBusiness) CreateRestaurant(ctx context.Context, data 
 	}
 
 	if err := biz.storage.CreateRestaurant(ctx, data); err != nil {
-		return err
+		return common.ErrCannotCreateEntity(restaurantmodel.EntityName, err)
 	}
 
 	return nil

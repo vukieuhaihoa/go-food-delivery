@@ -1,11 +1,16 @@
 package restaurantmodel
 
 import (
-	"errors"
 	"strings"
 	"time"
 
 	"github.com/vukieuhaihoa/go-food-delivery/common"
+)
+
+const EntityName = "Restaurant"
+
+var (
+	ErrNameCannotBeBlank = common.NewCustomError(nil, "restaurant name can not be blank", "ErrNameCannotBeBlank")
 )
 
 type Restaurant struct {
@@ -15,12 +20,16 @@ type Restaurant struct {
 	Address  string `json:"address" gorm:"column:address;"`
 }
 
+func (r *Restaurant) Mask(isAdminOrOwner bool) {
+	r.SQLModel.Mask(common.DbTypeRestaurant)
+}
+
 func (Restaurant) TableName() string {
 	return "restaurants"
 }
 
 type RestaurantCreate struct {
-	Id      int    `json:"id" gorm:"column:id;"`
+	common.SQLModel
 	Name    string `json:"name" gorm:"column:name;"`
 	Address string `json:"address" gorm:"column:address;"`
 }
@@ -43,7 +52,7 @@ func (res *RestaurantCreate) Validate() error {
 	res.Name = strings.TrimSpace(res.Name)
 
 	if len(res.Name) == 0 {
-		return errors.New("restaurant name can not be blank")
+		return ErrNameCannotBeBlank
 	}
 
 	return nil

@@ -4,7 +4,10 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	restaurantgin "github.com/vukieuhaihoa/go-food-delivery/modules/restaurant/transport/gin"
+	api "github.com/vukieuhaihoa/go-food-delivery/api/v1"
+	"github.com/vukieuhaihoa/go-food-delivery/component"
+	middleware "github.com/vukieuhaihoa/go-food-delivery/middleware"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -26,26 +29,13 @@ func main() {
 func runService(db *gorm.DB) error {
 	r := gin.Default()
 
-	v1 := r.Group("/v1")
-	{
-		healthCheck := v1.Group("/healthcheck")
-		{
-			healthCheck.GET("/", func(ctx *gin.Context) {
-				ctx.JSON(200, gin.H{
-					"message": "health check success.",
-				})
-			})
-		}
+	// r := gin.New()
 
-		restaurants := v1.Group("/restaurants")
-		{
-			restaurants.POST("", restaurantgin.CreateRestaurantHandler(db))
-			restaurants.GET("/:restaurant_id", restaurantgin.FindRestaurantHandler(db))
-			restaurants.GET("", restaurantgin.ListRestaurantsHandler(db))
-			restaurants.PUT("/:restaurant_id", restaurantgin.UpdateRestaurantHandler(db))
-			restaurants.DELETE("/:restaurant_id", restaurantgin.DeleteRestaurantHandler(db))
-		}
-	}
+	r.Use(middleware.Recover())
+
+	appCtx := component.NewAppContext(db)
+
+	api.MainRoute(r, appCtx)
 
 	return r.Run()
 }
